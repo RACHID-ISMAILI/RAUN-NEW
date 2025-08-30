@@ -1,16 +1,15 @@
-{
+﻿{
   "hosting": {
     "public": ".",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
+    "cleanUrls": true,
     "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
+      { "source": "/admin",      "destination": "/admin.html" },
+      { "source": "/public",     "destination": "/public.html" },
+      { "source": "/auth",       "destination": "/auth.html" },
+      { "source": "/approvals",  "destination": "/approvals.html" },
+      { "source": "/intentions", "destination": "/intentions.html" },
+      { "source": "/accueil",    "destination": "/accueil.html" },
+      { "source": "/about",      "destination": "/about.html" }
     ]
   }
 }
