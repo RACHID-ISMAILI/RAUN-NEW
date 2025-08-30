@@ -1,0 +1,13 @@
+
+/* RAUN — Moderation Panel (admin only) */
+.raun-mod{ max-width: 1080px; margin: 20px auto; padding: 16px; border-radius: 16px;
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); }
+.raun-mod h2{ margin: 6px 6px 12px; font-size: 1.3rem; }
+.raun-list{ display: flex; flex-direction: column; gap: 10px; }
+.raun-item{ padding: 12px; border-radius: 12px; background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.06); }
+.raun-item .meta{ opacity: 0.9; font-size: .95rem; display: flex; gap: 8px; justify-content: space-between; }
+.raun-item .body{ margin: 6px 0 8px; font-size: 1rem; }
+.raun-actions{ display: flex; gap: 8px; justify-content: flex-end; }
+.btn-delete{ display: inline-flex; gap: 8px; align-items: center; padding: 8px 12px;
+  border: 1px solid rgba(255,100,100,.45); border-radius: 10px; background: rgba(255,50,50,.10); }

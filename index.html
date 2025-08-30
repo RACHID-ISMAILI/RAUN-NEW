@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>RAUN — Portail</title>
+  <meta name="description" content="Portail RAUN. Je suis vivant en conscience."/>
+  <link rel="preload" as="image" href="assets/raun-landing.png"/>
+  <style>
+    :root { --bg:#000; --gold:#d7b46a; }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: #000; /* ciel noir */
+      color: #eae6db;
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,Montserrat,Arial,sans-serif;
+      overflow: hidden;
+    }
+    /* Fond: étoiles très brillantes + météores rapides */
+    #stars, #meteors {
+      position: fixed; inset: 0; width: 100vw; height: 100vh; display: block;
+    }
+    #stars { z-index: 0; } #meteors { z-index: 1; }
+    .vignette {
+      position: fixed; inset: 0; z-index: 2; pointer-events: none;
+      background: radial-gradient(900px 500px at 50% 18%, rgba(255,255,255,.08) 0%, rgba(255,255,255,.04) 50%, transparent 75%);
+    }
+    main {
+      position: relative; z-index: 3;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      gap: clamp(18px, 3.5vh, 28px);
+      padding: clamp(14px, 3vw, 36px);
+      min-height: 100dvh; width: 100%;
+    }
+    .stack { position: relative; display: grid; place-items: center; }
+    .poster {
+      /* 80% largeur ET hauteur, ratio 3:5 (0.6) */
+      width: min(80vw, calc(80vh * 0.6));
+      height: auto; aspect-ratio: 3 / 5; max-height: 80vh;
+      background: url('assets/raun-landing.png') center/cover no-repeat;
+      border-radius: 22px;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,.22) inset,
+        0 0 34px rgba(255,255,255,.16),
+        0 0 160px rgba(255,255,255,.06);
+      outline: 1px solid rgba(255,255,255,.12);
+      position: relative; z-index: 2;
+    }
+    /* HALO Maroc discret (rouge/vert) derrière l'affiche */
+    .halo {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%,-50%) scale(1.10);
+      width: 120%; height: 115%;
+      border-radius: 28px;
+      z-index: 1; pointer-events: none;
+      background:
+        radial-gradient(60% 85% at 38% 50%, rgba(220, 35, 52, 0.18), rgba(220,35,52,0) 65%),
+        radial-gradient(60% 85% at 62% 50%, rgba(10, 190, 110, 0.18), rgba(10,190,110,0) 65%);
+      filter: blur(34px) saturate(1.05);
+      opacity: 0.55;
+    }
+    .btn {
+      display: inline-block; text-decoration: none; font-weight: 800; letter-spacing: .6px;
+      padding: 0.95rem 1.4rem; font-size: clamp(16px, 2.2vw, 20px);
+      border-radius: 12px; color: #eae6db;
+      background: rgba(255, 255, 255, .06);
+      border: 1px solid rgba(255, 255, 255, .28);
+      box-shadow: 0 0 18px rgba(255, 255, 255, .30), inset 0 0 14px rgba(255, 255, 255, .08);
+      transition: transform .14s ease, box-shadow .14s ease, background .14s ease;
+    }
+    .btn:hover { transform: translateY(-1px); background: rgba(255,255,255,.12);
+      box-shadow: 0 0 28px rgba(255,255,255,.38), inset 0 0 14px rgba(255,255,255,.12); }
+    .btn:active { transform: translateY(0); }
+    .btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
+    .hint { opacity: .9; font-size: .95rem; text-shadow: 0 1px 10px rgba(0,0,0,.85); }
+    @media (max-width: 520px) { .poster { width: 92vw; height: auto; } .halo{ display:none; } }
+    @media (prefers-reduced-motion: reduce) { #stars, #meteors { display:none; } }
+  </style>
+
+
+
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-auth-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/firebase-auth.js"></script>
+  <link rel="stylesheet" href="css/auth-helpers.css">
+</head>
+<body>
+  <canvas id="stars" aria-hidden="true"></canvas>
+  <canvas id="meteors" aria-hidden="true"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
+  <main>
+    <div class="stack">
+      <div class="halo" aria-hidden="true"></div>
+      <div class="poster" role="img" aria-label="Héros RAUN devant un ciel noir, halo rouge/vert discret (clin d'œil au drapeau marocain)."></div>
+    </div>
+    <a href="accueil.html" class="btn" id="go">ACCUEIL</a>
+    <div class="hint">Astuce : appuyez sur <b>Entrée</b> pour continuer</div>
+  </main>
+  <script>
+    // Entrée clavier
+    document.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ document.getElementById('go').click(); } });
+
+    // --- STARFIELD: très brillant ---
+    (function(){
+      const c = document.getElementById('stars');
+      const ctx = c.getContext('2d');
+      let dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
+      let w=0, h=0, stars=[];
+
+      function resize(){
+        w = Math.floor(window.innerWidth * dpr);
+        h = Math.floor(window.innerHeight * dpr);
+        c.width = w; c.height = h;
+        c.style.width = window.innerWidth + 'px';
+        c.style.height = window.innerHeight + 'px';
+
+        const area = (window.innerWidth * window.innerHeight);
+        const base = Math.floor(area / 800);
+        const count = Math.max(700, Math.min(2600, base));
+        stars = [];
+        for(let i=0;i<count;i++){
+          const r = (Math.random() < 0.10 ? 2.3 : Math.random()*1.5 + 0.6) * dpr;
+          const glow = (Math.random() < 0.20 ? 14 : 8) * dpr;
+          stars.push({
+            x: Math.random()*w, y: Math.random()*h, r, glow,
+            base: Math.random()*0.6 + 0.6,
+            amp: Math.random()*0.45 + 0.25,
+            spd: (Math.random()*0.014 + 0.007) * (Math.random()<0.5?-1:1)
+          });
+        }
+      }
+
+      function frame(){
+        ctx.clearRect(0,0,w,h);
+        for(const s of stars){
+          s.base += s.spd;
+          let a = Math.max(0.35, Math.min(1, s.base + Math.sin(s.base*6)*s.amp));
+          ctx.save();
+          ctx.globalAlpha = a;
+          ctx.shadowBlur = s.glow;
+          ctx.shadowColor = '#ffffff';
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+          ctx.fill();
+          ctx.restore();
+        }
+        requestAnimationFrame(frame);
+      }
+
+      window.addEventListener('resize', resize);
+      resize(); frame();
+    })();
+
+    // --- METEORS: plus nombreuses ---
+    (function(){
+      const c = document.getElementById('meteors');
+      const ctx = c.getContext('2d');
+      let dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
+      let w=0, h=0, trails=[];
+      const MAX_TRAILS = 6;
+
+      function resize(){
+        w = Math.floor(window.innerWidth * dpr);
+        h = Math.floor(window.innerHeight * dpr);
+        c.width = w; c.height = h;
+        c.style.width = window.innerWidth + 'px';
+        c.style.height = window.innerHeight + 'px';
+      }
+      function rnd(a,b){ return a + Math.random()*(b-a); }
+      function spawnTrail(){
+        const speed = rnd(3.0, 6.0) * dpr;
+        trails.push({
+          x: rnd(-0.15*w, 0.25*w),
+          y: rnd(-0.10*h, 0.35*h),
+          vx: speed, vy: speed * rnd(0.35, 0.75),
+          life: rnd(0.8, 1.4) * 60
+        });
+        if(trails.length > MAX_TRAILS) trails.shift();
+      }
+      function maybeSpawn(){
+        if(Math.random() < 0.06) spawnTrail();
+        if(Math.random() < 0.015){
+          const n = 1 + Math.floor(Math.random()*2);
+          for(let i=0;i<n;i++) spawnTrail();
+        }
+      }
+      function drawTrail(t){
+        const tx = t.x, ty = t.y;
+        ctx.save();
+        ctx.shadowBlur = 18 * dpr;
+        ctx.shadowColor = '#ffffff';
+        ctx.fillStyle = '#ffffff';
+        ctx.globalAlpha = 0.95;
+        ctx.beginPath();
+        ctx.arc(tx, ty, 1.9*dpr, 0, Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+        const ex = tx - t.vx * 10;
+        const ey = ty - t.vy * 10;
+        const grad = ctx.createLinearGradient(tx, ty, ex, ey);
+        grad.addColorStop(0, 'rgba(255,255,255,1)');
+        grad.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 1.4 * dpr;
+        ctx.beginPath();
+        ctx.moveTo(tx, ty);
+        ctx.lineTo(ex, ey);
+        ctx.stroke();
+      }
+      function frame(){
+        ctx.clearRect(0,0,w,h);
+        maybeSpawn();
+        for(let i=trails.length-1;i>=0;i--){
+          const t = trails[i];
+          t.x += t.vx; t.y += t.vy; t.life -= 1;
+          drawTrail(t);
+          if(t.life <= 0 || t.x > w+80 || t.y > h+80){ trails.splice(i,1); }
+        }
+        requestAnimationFrame(frame);
+      }
+      window.addEventListener('resize', resize);
+      resize(); frame();
+    })();
+  </script>
+
+
+
+</body>
+</html>

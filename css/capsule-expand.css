@@ -1,0 +1,48 @@
+/* RAUN Capsule Expand v1.1 (80% viewport + inner vertical scroll) */
+.raun-capsule-expandable{
+  position: relative;
+}
+.raun-expand-btn{
+  position:absolute;
+  top:.5rem; right:.5rem;
+  width:20px; height:20px;
+  border:1px solid rgba(255,255,255,.25);
+  background: rgba(255,255,255,.08);
+  border-radius:4px;
+  cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center;
+  font-size:12px; line-height:1;
+  user-select:none;
+  transition:all .2s ease;
+}
+.raun-expand-btn:hover{ background: rgba(255,255,255,.15); }
+.raun-expand-btn::before{ content:"▢"; }
+.raun-capsule-expandable.is-expanded > .raun-expand-btn::before{ content:"↙"; }
+
+/* Expanded container: fixed at 80% viewport, body scroll locked */
+.raun-capsule-expandable.is-expanded{
+  position: fixed !important;
+  top: 10vh; left: 10vw;
+  width: 80vw; height: 80vh;
+  max-width: 80vw; max-height: 80vh;
+  z-index: 9999;
+  overflow: hidden;           /* Important: content scrolls INSIDE, body is locked */
+  box-shadow: 0 20px 60px rgba(0,0,0,.6);
+  backdrop-filter: blur(0.5px);
+}
+
+/* Scrollable inner wrapper (created automatically) */
+.raun-capsule-scroll{
+  max-height: none;           /* normal state */
+}
+.raun-capsule-expandable.is-expanded .raun-capsule-scroll{
+  height: 100%;
+  max-height: 100%;
+  overflow-y: auto;           /* vertical scrollbar inside capsule */
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;   /* avoid layout shift when scrollbar appears */
+  padding-right: .25rem;      /* small breathing room for scrollbar */
+}
+
+/* Optional: prevent background page from scrolling while expanded */
+body.raun-capsule-locked{ overflow: hidden; }

@@ -1,0 +1,23 @@
+
+/* Lightweight Subscribe Toggle styles (non-intrusive) */
+.raun-subscribe-btn{
+  cursor:pointer;
+  user-select:none;
+  transition:all .2s ease;
+}
+.raun-subscribe-btn.is-subscribed{
+  background: #1aa34a !important; /* green */
+  color:#031020 !important;
+  border-color:#1aa34a !important;
+  box-shadow: 0 0 10px rgba(26,163,74,.35);
+}
+.raun-subscribe-count{
+  font-size:.9rem;
+  opacity:.9;
+  margin-left:.5rem;
+}
+.raun-subscribe-count[data-demo="1"]::after{
+  content:"*";
+  font-size:.8em;
+  vertical-align:top;
+}

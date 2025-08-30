@@ -1,0 +1,3 @@
+
+/* Optionnel : masquer le bouton Admin par défaut, le script l'affichera si l'admin est connecté */
+#adminBtn{ display: none; }

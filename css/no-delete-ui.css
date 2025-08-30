@@ -1,0 +1,4 @@
+
+/* RAUN — Supprimer les boutons 'Supprimer' des pages PUBLIC & INTENTIONS */
+.btn-delete, .delete-btn, button[title="Supprimer"], button[data-action="delete"],
+a.btn-delete, .comment .actions .delete, .intention .actions .delete { display:none !important; visibility:hidden !important; }

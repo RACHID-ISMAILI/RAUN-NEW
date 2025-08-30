@@ -1,0 +1,10 @@
+
+:root{ --viewer-max-h: 72vh; }
+.viewer{ display:flex; flex-direction:column; max-height:var(--viewer-max-h); overflow:hidden; }
+.capsuleBody{ flex:1 1 auto; min-height:0; overflow-y:auto; scrollbar-width:thin; }
+.capsuleBody::-webkit-scrollbar{ width:10px; }
+.capsuleBody::-webkit-scrollbar-track{ background: rgba(255,255,255,.04); border-radius:10px; }
+.capsuleBody::-webkit-scrollbar-thumb{ background: linear-gradient(180deg, rgba(0,198,255,.35), rgba(0,255,204,.35)); border-radius:10px; border:2px solid rgba(3,13,26,.85); }
+.actions{ position:sticky; bottom:0; background:inherit; padding:10px 0; border-top:1px solid rgba(255,255,255,.15); z-index:6; }
+#imgPreview{ max-height:40vh; overflow:auto; }
+#imgPreview img{ max-width:100%; height:auto; display:block; }

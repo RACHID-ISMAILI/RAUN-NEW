@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>RAUN • Capsules Publiques</title>
+  <meta name="theme-color" content="#031020">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Orbitron:wght@500;700;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+
+<!-- RAUN-ACTIONS-STYLES v2 -->
+<style>
+.raun-actions{ display:flex; gap:12px; align-items:center; margin:12px 0; flex-wrap:wrap; }
+.raun-btn{ appearance:none; border:0; cursor:pointer; user-select:none;
+  padding:10px 18px; border-radius:9999px; font-weight:700; font-family:inherit;
+  transition:transform .06s ease, background .2s ease, color .2s ease; outline: none; }
+.raun-btn:active{ transform:translateY(1px); }
+.raun-join{ background:#f3f4f6; color:#111; border:1px solid #e5e7eb; }
+.raun-join:hover{ background:#e9eaee; }
+.raun-subscribe{ background:#111; color:#fff; }
+.raun-subscribe:hover{ background:#000; }
+.raun-modal{ position:fixed; inset:0; display:none; z-index:9999; }
+.raun-modal.raun-open{ display:block; }
+.raun-modal .raun-backdrop{ position:absolute; inset:0; background:rgba(0,0,0,.55); }
+.raun-modal .raun-sheet{ position:absolute; right:0; top:0; bottom:0; width:min(420px,92vw);
+  background:#0b1220; color:#eaf2ff; padding:22px; overflow:auto; box-shadow:-12px 0 40px rgba(0,0,0,.35); }
+.raun-plan{ display:flex; justify-content:space-between; align-items:center; padding:12px 14px; border-radius:14px; background:#0e172a; margin:10px 0; border:1px solid #19233b; }
+.raun-plan .raun-price{ opacity:.9; font-weight:700; }
+.raun-plan button{ padding:8px 14px; border-radius:9999px; border:1px solid #2a3552; background:#0c60ff; color:#fff; font-weight:700; }
+.raun-close{ background:transparent; color:#9fb3ff; border:0; font-weight:700; cursor:pointer; }
+</style>
+
+<!-- RAUN-EXPANDER-STYLES v1 -->
+<style>:root{ --viewer-max-h: 72vh; } /* Ajustable */
+.viewer{
+  position: relative;
+  display: flex;          /* colonne : titre/meta/btn visibles */
+  flex-direction: column;
+  max-height: var(--viewer-max-h);
+  overflow: hidden;       /* le contenu scrolle DEDANS via .capsuleBody */
+}
+
+/* Scroll aligné à la fenêtre (dans le bloc bordé) */
+.capsuleBody{
+  flex: 1 1 auto;
+  min-height: 0;                  /* autorise le shrink dans flex */
+  overflow-y: auto;
+  scrollbar-width: thin;          /* Firefox */
+  scrollbar-gutter: stable;       /* pas de décalage moche */
+}
+.capsuleBody::-webkit-scrollbar{ width: 10px; }
+.capsuleBody::-webkit-scrollbar-track{ background: rgba(255,255,255,.04); border-radius: 10px; }
+.capsuleBody::-webkit-scrollbar-thumb{
+  background: linear-gradient(180deg, rgba(0,198,255,.35), rgba(0,255,204,.35));
+  border-radius: 10px;
+  border: 2px solid rgba(3,13,26,.85);
+}
+.capsuleBody::-webkit-scrollbar-thumb:hover{
+  background: linear-gradient(180deg, rgba(0,198,255,.50), rgba(0,255,204,.50));
+}
+
+
+/* Hauteur max par défaut en état initial + scroll interne */
+:root{ --viewer-max-h: 72vh; } /* ajustable facilement */
+
+
+
+/* Petit carreau en haut à droite pour agrandir/reduire la fenêtre capsule */
+ /* discret : permet le positionnement absolu du bouton */
+.raun-expander-btn{
+  position:absolute; top:10px; right:10px; z-index:10;
+  width:28px; height:28px; border-radius:6px;
+  border:1px solid rgba(160,190,255,.35);
+  background:rgba(15,25,45,.55); backdrop-filter: blur(6px);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition: transform .08s ease, filter .2s ease, border-color .2s ease;
+}
+.raun-expander-btn:hover{ filter:brightness(1.08); }
+.raun-expander-btn:active{ transform: translateY(1px); }
+.raun-expander-icon{
+  width:16px; height:16px; position:relative; display:block;
+}
+/* icône: petit carré */
+.raun-expander-icon::before{
+  content:""; position:absolute; inset:2px;
+  border:2px solid #9fb3ff; border-radius:3px;
+  box-shadow:0 0 0 1px rgba(0,0,0,.2) inset;
+}
+
+/* Mode agrandi */
+.raun-expanded{
+  position: fixed !important;
+  top: 10vh !important; left: 10vw !important;
+  width: 80vw !important; height: 80vh !important;
+  max-width: 80vw !important; max-height: 80vh !important;
+  z-index: 9998 !important; background: rgba(3,13,26,.96) !important;
+  border-radius: 16px; box-shadow: 0 30px 80px rgba(0,0,0,.45);
+  overflow: hidden !important;      /* le scroll est géré par .capsuleBody */
+  padding: 18px !important; box-sizing: border-box !important;
+}
+/* Empêcher le scroll de la page derrière */
+.raun-no-scroll{ overflow: hidden !important; }
+
+</style>
+  <link rel="stylesheet" href="css/subscribe-toggle.css">
+  <link rel="stylesheet" href="css/capsule-expand.css">
+
+<style>
+.capsuleBody img{
+  max-width:100%; height:auto; display:block;
+  border-radius:10px; margin:10px 0;
+  box-shadow:0 6px 24px rgba(0,0,0,.25);
+}
+.capsuleBody .gallery{ display:grid; gap:10px; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); }
+.capsuleBody .gallery img{ width:100%; height:auto; border-radius:12px; }
+</style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-auth-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/firebase-auth.js"></script>
+  <link rel="stylesheet" href="css/auth-helpers.css">
+
+  <link rel="stylesheet" href="css/no-delete-ui.css">
+  <script src="js/strip-delete-buttons.js"></script>
+</head>
+<body>
+  <canvas id="matrix-bg"></canvas>
+  <div id="particles"></div>
+
+  <div id="notification" class="notification">
+    <i class="fas fa-info-circle"></i><span id="notification-text">Bienvenue dans RAUN.</span>
+  </div>
+
+  <header>
+    <div class="brand">
+      <i class="fas fa-infinity"></i><span>RAUN</span>
+    </div>
+    <div class="navbtns">
+      <button class="btn btn-purple" onclick="location.href='index.html'">
+        <i class="fa fa-star"></i> Accueil
+      </button>
+      <button class="btn" onclick="location.href='public.html'">
+        <i class="fa fa-home"></i> Public
+      </button>
+      <button class="btn" onclick="location.href='intentions.html'">
+        <i class="fa fa-sparkles"></i> Intentions
+      </button>
+      <button class="btn" onclick="location.href='about.html'">
+        <i class="fa fa-user-astronaut"></i> À propos
+      </button>
+      <button class="btn btn-amber" onclick="location.href='auth.html'">
+        <i class="fa fa-user-shield"></i> Administration
+      </button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="publicLayout">
+      <div class="publicMain">
+        <div class="title">Page Publique</div>
+        <div class="sub">Une capsule à la fois • votes uniques • commentaires</div>
+
+        <div class="viewer">
+          <div class="capsuleTitle" id="capsuleTitle">—</div>
+          <div class="ai-summary" id="aiSummaryBox"></div>
+          <div class="capsuleBody" id="capsuleBody">—</div>
+
+          <div class="capsuleMeta">
+            <button class="btn" onclick="vote('up')">👍 <b id="upCount">0</b></button>
+            <button class="btn" onclick="vote('down')">👎 <b id="downCount">0</b></button>
+            <span style="margin-left:auto;opacity:.8" id="capsuleCounter">0 / 0</span>
+            <button class="btn btn-cyan" onclick="aiAnalyzeCapsule()"><i class="fa-solid fa-wand-magic-sparkles"></i> Résumé IA</button>
+          </div>
+
+          <div class="viewerNav">
+            <button class="btn" onclick="prevCapsule()" id="prevBtn"><i class="fa fa-arrow-left"></i> Précédent</button>
+            <button class="btn" onclick="nextCapsule()" id="nextBtn">Suivant <i class="fa fa-arrow-right"></i></button>
+          </div>
+        </div>
+
+        <div>
+          <div class="title">Commentaires</div>
+          <input id="cUser" class="smallInput" placeholder="Nom (optionnel)" value=""/>
+          <textarea id="cText" class="bigArea" placeholder="Écris un commentaire…"></textarea>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn btn-green" onclick="addComment()"><i class="fa fa-paper-plane"></i> Publier</button>
+          </div>
+          <div id="comments" class="list"></div>
+        </div>
+      </div>
+
+      <aside class="publicRail">
+        <div class="railHead"><i class="fa fa-layer-group"></i> Capsules</div>
+
+        <div class="railControls">
+          <div class="railSearch">
+            <i class="fa fa-magnifying-glass"></i>
+            <input id="railQuery" value="" placeholder="Rechercher une capsule…">
+            <button class="clearBtn" onclick="clearRailSearch()" title="Effacer" id="clearSearchBtn" style="display:none"><i class="fa fa-xmark"></i></button>
+          </div>
+
+          <div class="railSort">
+            <select id="railSort" aria-label="Trier">
+              <option value="recent">Plus récent</option>
+              <option value="voted">Plus voté</option>
+              <option value="commented">Plus commenté</option>
+            </select>
+            <span class="sortIcon"><i class="fa fa-arrow-up-wide-short"></i></span>
+          </div>
+
+          <div class="railInfo" id="railInfo">0 / 0 visibles</div>
+        </div>
+
+        <div class="railScroll" id="railScroll">
+          <div class="thumb-empty">Chargement...</div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="footer">
+      RAUN — « Réseau d'Âmes Unifiées Numériquement » — Architecte de l'ombre —
+    </div>
+  </div>
+
+  <button class="ai-fab" id="aiFab" title="Assistant IA" onclick="toggleChat()">
+    <i class="fa-solid fa-robot"></i>
+  </button>
+
+  <div class="chat-container" id="chatBox">
+    <div class="chat-header">
+      <div><i class="fa-solid fa-robot"></i> Assistant RAUN</div>
+      <div class="chat-tools">
+        <span class="chip" onclick="aiSummarizeThread()">Résumé</span>
+        <span class="chip" onclick="aiAnalyzeCapsule()">Analyser la capsule</span>
+        <span class="chip" onclick="aiSuggest()">Suggestions</span>
+        <button class="btn btn-red" onclick="toggleChat()"><i class="fa fa-xmark"></i></button>
+      </div>
+    </div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-input">
+      <input id="chatInput" placeholder="Pose ta question… (ex: résume la capsule)"/>
+      <button class="btn btn-cyan" onclick="sendChat()"><i class="fa fa-paper-plane"></i></button>
+    </div>
+  </div>
+
+  <script>
+// Choix auto du mode par page + baisse auto après 6s / 1er scroll
+(function () {
+  const page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+  let mode =
+    page === 'index.html'         ? 'showcase' :
+    page === 'public.html'        ? 'normal'   :
+    page === 'intentions.html'    ? 'normal'   :
+    /* about/auth/admin/autres */   'chill';
+
+  // Mobile → chill quoi qu'il arrive
+  if (matchMedia('(max-width: 600px)').matches) mode = 'chill';
+
+  window.__raunMatrixConfig = Object.assign(window.__raunMatrixConfig || {}, { mode });
+
+  // Si on démarre en showcase, on “redescend” automatiquement au premier scroll ou après 6s
+  if (mode === 'showcase') {
+    const downshift = () => window.__raunMatrixSetMode && window.__raunMatrixSetMode('normal');
+    setTimeout(downshift, 6000);
+    window.addEventListener('scroll', downshift, { once: true, passive: true });
+  }
+})();
+</script>
+
+<script src="main.js"></script>
+  <script src="public.js"></script>
+
+
+<!-- RAUN-MEMBERSHIP-PANEL v3 -->
+<div id="raun-membership" class="raun-modal" aria-hidden="true">
+  <div class="raun-backdrop" onclick="document.getElementById('raun-membership').classList.remove('raun-open')"></div>
+  <aside class="raun-sheet" role="dialog" aria-label="Adhésion RAUN">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <h3>Bénéficiez d’avantages réservés aux membres</h3>
+      <button class="raun-close" onclick="document.getElementById('raun-membership').classList.remove('raun-open')">Fermer</button>
+    </div>
+    <p style="opacity:.8;margin:0 0 16px;">Choisissez un plan et payez via <strong>PayPal</strong> ou <strong>Carte (Visa/Mastercard)</strong>.</p>
+
+    <div class="raun-plan">
+      <div>
+        <div style="font-weight:800;">الاشتراك البرونزي</div>
+        <div class="raun-price">25,00 MAD / mois</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <a id="card-bronze" class="raun-btn" style="padding:8px 12px;border:1px solid #2a3552;background:#122046;color:#eaf2ff;border-radius:9999px;text-decoration:none;">Carte</a>
+        <div id="paypal-bronze" style="min-width:140px;"></div>
+      </div>
+    </div>
+
+    <div class="raun-plan">
+      <div>
+        <div style="font-weight:800;">الاشتراك الفضي</div>
+        <div class="raun-price">90,00 MAD / mois</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <a id="card-silver" class="raun-btn" style="padding:8px 12px;border:1px solid #2a3552;background:#122046;color:#eaf2ff;border-radius:9999px;text-decoration:none;">Carte</a>
+        <div id="paypal-silver" style="min-width:140px;"></div>
+      </div>
+    </div>
+
+    <div class="raun-plan">
+      <div>
+        <div style="font-weight:800;">الاشتراك الذهبي</div>
+        <div class="raun-price">225,00 MAD / mois</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <a id="card-gold" class="raun-btn" style="padding:8px 12px;border:1px solid #2a3552;background:#122046;color:#eaf2ff;border-radius:9999px;text-decoration:none;">Carte</a>
+        <div id="paypal-gold" style="min-width:140px;"></div>
+      </div>
+    </div>
+
+    <p style="opacity:.8;margin-top:16px;">Astuce : tu peux commencer avec les montants fixes PayPal (sandbox) puis remplacer par tes identifiants Live.</p>
+  </aside>
+</div>
+
+<!-- RAUN-ACTIONS-SCRIPT v3 (PayPal + Carte Visa) -->
+<script>
+(function(){
+  if (window.__raunActionsLoaded3) return; window.__raunActionsLoaded3 = true;
+
+  // Configuration à personnaliser
+  window.RAUN_PAY = window.RAUN_PAY || {
+    currency: 'MAD',
+    paypal_client_id: 'sb', // 'sb' = sandbox ; remplace par ton client-id LIVE PayPal
+    paypal_plans: { bronze: 25, silver: 90, gold: 225 },
+    card_links: { bronze: '#', silver: '#', gold: '#' } // Remplace par des Payment Links Stripe (Visa/Mastercard)
+  };
+
+  function loadPayPalSDK(cb){
+    if (window.paypal){ cb(); return; }
+    var src = 'https://www.paypal.com/sdk/js?client-id=' + encodeURIComponent(RAUN_PAY.paypal_client_id) + '&currency=' + encodeURIComponent(RAUN_PAY.currency);
+    var s = document.createElement('script'); s.src = src; s.onload = cb; s.async = true; document.head.appendChild(s);
+  }
+
+  function renderPP(id, amountMAD){
+    if(!document.getElementById(id)) return;
+    if(!window.paypal) return;
+    try {
+      paypal.Buttons({
+        style: { layout: 'horizontal', tagline: false, height: 35 },
+        createOrder: function(data, actions){
+          // Montant fixe en MAD (captured côté PayPal)
+          return actions.order.create({
+            purchase_units: [{ amount: { value: String(amountMAD), currency_code: RAUN_PAY.currency } }]
+          });
+        },
+        onApprove: function(data, actions){
+          return actions.order.capture().then(function(){
+            alert('Merci ! Paiement PayPal confirmé.');
+          });
+        }
+      }).render('#' + id);
+    } catch(e){ console.warn('PayPal render error', e); }
+  }
+
+  function ensureMembership(){
+    var panel = document.getElementById('raun-membership');
+    if(!panel){ document.body.insertAdjacentHTML('beforeend', '\n<!-- RAUN-MEMBERSHIP-PANEL v3 -->\n<div id="raun-membership" class="raun-modal" aria-hidden="true">\n  <div class="raun-backdrop" onclick="document.getElementById(\'raun-membership\').classList.remove(\'raun-open\')"></div>\n  <aside class="raun-sheet" role="dialog" aria-label="Adhésion RAUN">\n    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">\n      <h3>Bénéficiez d’avantages réservés aux membres</h3>\n      <button class="raun-close" onclick="document.getElementById(\'raun-membership\').classList.remove(\'raun-open\')">Fermer</button>\n    </div>\n    <p style="opacity:.8;margin:0 0 16px;">Choisissez un plan et payez via <strong>PayPal</strong> ou <strong>Carte (Visa/Mastercard)</strong>.</p>\n\n    <div class="raun-plan">\n      <div>\n        <div style="font-weight:800;">الاشتراك البرونزي</div>\n        <div class="raun-price">25,00 MAD / mois</div>\n      </div>\n      <div style="display:flex;gap:8px;align-items:center;">\n        <a id="card-bronze" class="raun-btn" style="padding:8px 12px;border:1px solid #2a3552;background:#122046;color:#eaf2ff;border-radius:9999px;text-decoration:none;">Carte</a>\n        <div id="paypal-bronze" style="min-width:140px;"></div>\n      </div>\n    </div>\n\n    <div class="raun-plan">\n      <div>\n        <div style="font-weight:800;">الاشتراك الفضي</div>\n        <div class="raun-price">90,00 MAD / mois</div>\n      </div>\n      <div style="display:flex;gap:8px;align-items:center;">\n        <a id="card-silver" class="raun-btn" style="padding:8px 12px;border:1px solid #2a3552;background:#122046;color:#eaf2ff;border-radius:9999px;text-decoration:none;">Carte</a>\n        <div id="paypal-silver" style="min-width:140px;"></div>\n      </div>\n    </div>\n\n    <div class="raun-plan">\n      <div>\n        <div style="font-weight:800;">الاشتراك الذهبي</div>\n        <div class="raun-price">225,00 MAD / mois</div>\n      </div>\n      <div style="display:flex;gap:8px;align-items:center;">\n        <a id="card-gold" class="raun-btn" style="padding:8px 12px;border:1px solid #2a3552;background:#122046;color:#eaf2ff;border-radius:9999px;text-decoration:none;">Carte</a>\n        <div id="paypal-gold" style="min-width:140px;"></div>\n      </div>\n    </div>\n\n    <p style="opacity:.8;margin-top:16px;">Astuce : tu peux commencer avec les montants fixes PayPal (sandbox) puis remplacer par tes identifiants Live.</p>\n  </aside>\n</div>\n'); panel = document.getElementById('raun-membership'); }
+    // Lier les liens "Carte" (Visa/Mastercard via Stripe Payment Links par ex.)
+    var cl = RAUN_PAY.card_links || {};
+    var a1 = document.getElementById('card-bronze'); if(a1) a1.href = cl.bronze || '#';
+    var a2 = document.getElementById('card-silver'); if(a2) a2.href = cl.silver || '#';
+    var a3 = document.getElementById('card-gold');   if(a3) a3.href = cl.gold   || '#';
+    // Charger PayPal et dessiner
+    loadPayPalSDK(function(){
+      renderPP('paypal-bronze', RAUN_PAY.paypal_plans.bronze);
+      renderPP('paypal-silver', RAUN_PAY.paypal_plans.silver);
+      renderPP('paypal-gold',   RAUN_PAY.paypal_plans.gold);
+    });
+    return panel;
+  }
+
+  function mountActions(){
+    var meta = document.querySelector('.capsuleMeta');
+    if(!meta) return;
+    if(meta.nextElementSibling && meta.nextElementSibling.classList && meta.nextElementSibling.classList.contains('raun-actions')) return;
+
+    var wrap = document.createElement('div');
+    wrap.className = 'raun-actions';
+    var join = document.createElement('button'); join.type='button'; join.className='raun-btn raun-join'; join.textContent='Rejoindre';
+    var sub  = document.createElement('button'); sub.type='button';  sub.className='raun-btn raun-subscribe'; sub.textContent="S'abonner";
+
+    join.addEventListener('click', function(){
+      var p = ensureMembership();
+      p.classList.add('raun-open');
+    });
+    sub.addEventListener('click', function(){
+      try{ localStorage.setItem('raun_subscribed_public','1'); alert('Merci ! Abonnement enregistré.'); }catch(e){ alert('Abonnement enregistré.'); }
+    });
+
+    wrap.appendChild(join); wrap.appendChild(sub);
+    meta.insertAdjacentElement('afterend', wrap);
+  }
+
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', mountActions); } else { mountActions(); }
+  var viewer = document.querySelector('.viewer');
+  if(viewer && 'MutationObserver' in window){
+    var mo = new MutationObserver(function(){ mountActions(); });
+    mo.observe(viewer, {childList:true, subtree:true});
+  }
+})();
+</script>
+
+<!-- RAUN-EXPANDER-SCRIPT v1 -->
+<script>
+(function(){
+  if (window.__raunExpanderLoaded) return; window.__raunExpanderLoaded = true;
+
+  function mount(){
+    var viewer = document.querySelector('.viewer');
+    if(!viewer) return;
+    if(viewer.querySelector('.raun-expander-btn')) return;
+
+    // bouton
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'raun-expander-btn';
+    btn.setAttribute('aria-label', 'Agrandir / Réduire la capsule');
+    btn.innerHTML = '<span class="raun-expander-icon" aria-hidden="true"></span>';
+    btn.addEventListener('click', function(){
+      var expanded = viewer.classList.toggle('raun-expanded');
+      document.documentElement.classList.toggle('raun-no-scroll', expanded);
+      document.body.classList.toggle('raun-no-scroll', expanded);
+      btn.setAttribute('aria-pressed', expanded ? 'true' : 'false');
+    });
+
+    viewer.appendChild(btn);
+  }
+
+  if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', mount); } else { mount(); }
+
+  // Si la capsule se recharge dynamiquement (comme sur ta page publique), assurer la présence du bouton
+  var anchor = document.querySelector('.viewer') || document.body;
+  if('MutationObserver' in window && anchor){
+    var mo = new MutationObserver(function(){ mount(); });
+    mo.observe(anchor, {childList:true, subtree:true});
+  }
+})();
+</script>
+  <script src="js/subscribe-toggle.js"></script>
+  <script src="js/capsule-expand.js"></script>
+
+<script>
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function renderCapsuleBody(raw){
+  const safe = escapeHtml(String(raw||''))
+    .replace(/\r?\n/g, '<br>')
+    .replace(/(https?:\/\/[^\s]+?\.(?:png|jpe?g|gif|webp))/gi, '<img src="$1" alt="" loading="lazy">')
+    .replace(/(https?:\/\/[^\s]+)/gi, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+  var el = document.getElementById('capsuleBody');
+  if(el) el.innerHTML = safe;
+}
+document.addEventListener('click', function(e){
+  var img = e.target.closest('.capsuleBody img');
+  if(!img) return;
+  var wrap = document.createElement('div');
+  wrap.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;cursor:zoom-out';
+  var big = document.createElement('img');
+  big.src = img.src;
+  big.style.cssText = 'max-width:90vw;max-height:90vh;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.6)';
+  wrap.appendChild(big);
+  wrap.addEventListener('click', function(){ wrap.remove(); });
+  document.body.appendChild(wrap);
+});
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

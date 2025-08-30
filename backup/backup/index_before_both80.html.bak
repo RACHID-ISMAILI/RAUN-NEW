@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>RAUN — Portail</title>
+  <meta name="description" content="Portail RAUN. Je suis vivant en conscience."/>
+  <link rel="preload" as="image" href="assets/raun-landing.png"/>
+  <style>
+    :root { --bg:#030d1a; --neon:#00e5ff; --gold:#d7b46a; }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(1200px 700px at 50% 20%, #0a1e31 0%, #061726 40%, #030d1a 100%);
+      color: #eae6db;
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,Montserrat,Arial,sans-serif;
+    }
+    main { display:flex; flex-direction:column; align-items:center; gap: clamp(18px, 3.5vh, 28px); padding: clamp(14px, 3vw, 36px); width: 100%; }
+    .poster {
+      /* Fit within 80% of the viewport height and width, preserving 3:5 ratio */
+      height: min(80vh, 120vw); /* safety for very narrow screens */
+      width: min(80vw, calc(80vh * 0.6));
+      max-width: 1100px;
+      aspect-ratio: 3 / 5;
+      background: url('assets/raun-landing.png') center/cover no-repeat;
+      border-radius: 22px;
+      box-shadow:
+        0 0 0 1px rgba(0, 229, 255, .20) inset,
+        0 0 24px rgba(0, 229, 255, .28),
+        0 0 140px rgba(0, 229, 255, .15);
+      outline: 1px solid rgba(0, 229, 255, .18);
+    }
+    .btn {
+      display: inline-block;
+      text-decoration: none;
+      font-weight: 800;
+      letter-spacing: .6px;
+      padding: 0.95rem 1.4rem;
+      font-size: clamp(16px, 2.2vw, 20px);
+      border-radius: 12px;
+      color: #eae6db;
+      background: rgba(0, 229, 255, .06);
+      border: 1px solid rgba(0, 229, 255, .38);
+      box-shadow: 0 0 18px rgba(0, 229, 255, .45), inset 0 0 14px rgba(0, 229, 255, .10);
+      transition: transform .14s ease, box-shadow .14s ease, background .14s ease;
+    }
+    .btn:hover {
+      transform: translateY(-1px);
+      background: rgba(0, 229, 255, .10);
+      box-shadow: 0 0 28px rgba(0, 229, 255, .55), inset 0 0 14px rgba(0, 229, 255, .14);
+    }
+    .btn:active { transform: translateY(0); }
+    .btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
+    .hint { opacity: .8; font-size: .95rem; }
+    @media (max-width: 520px) {
+      /* On small phones, keep it comfortable */
+      .poster { width: 92vw; height: auto; aspect-ratio: 3 / 5; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .btn, .poster { transition: none !important; }
+    }
+  </style>
+
+<!-- RAUN_CAPSULE_EXPAND_98_V2_STYLE_START -->
+<style>
+/* ===== RAUN Capsule Expand 98% (V2) ===== */
+.raun-capsule.expanded-98,
+.capsule.expanded-98,
+.capsule-window.expanded-98,
+.capsule-card.expanded-98,
+[data-capsule].expanded-98 {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: 98vw !important;
+  height: 98vh !important;
+  max-width: 98vw !important;
+  max-height: 98vh !important;
+  z-index: 2147483000 !important; /* super high */
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-shadow: 0 20px 70px rgba(0,0,0,.65), 0 0 0 1px rgba(255,255,255,.10) inset !important;
+  background-clip: padding-box !important;
+}
+/* Fill inner content area to the available height */
+.expanded-98 .capsule-body,
+.expanded-98 .capsule-content,
+.expanded-98 .content,
+.expanded-98 .inner,
+.expanded-98 .scroll,
+.expanded-98 .scrollable,
+.expanded-98 main,
+.expanded-98 section,
+.expanded-98 .pane,
+.expanded-98 .panel {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow: auto !important;
+}
+/* Optional fixed header/footer (kept at natural height) */
+.expanded-98 header,
+.expanded-98 .capsule-header,
+.expanded-98 footer,
+.expanded-98 .capsule-footer {
+  flex: 0 0 auto !important;
+}
+/* Backdrop + body lock */
+.capsule-expanded-backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(0, 0, 0, .70) !important;
+  backdrop-filter: blur(2px) !important;
+  z-index: 2147482990 !important;
+}
+body.capsule-expanded-lock { overflow: hidden !important; }
+
+/* Small square enlarge button */
+.raun-enlarge,
+.capsule .capsule__enlarge {
+  position: absolute; top: 10px; right: 10px;
+  width: 28px; height: 28px; display: grid; place-items: center;
+  border-radius: 6px; background: rgba(255,255,255,.10);
+  border: 1px solid rgba(255,255,255,.28);
+  cursor: pointer; font-size: 14px; line-height: 1; color: #e9eef9; user-select: none;
+  z-index: 2;
+}
+.capsule .capsule__enlarge:hover, .raun-enlarge:hover { background: rgba(255,255,255,.18); }
+.capsule .capsule__enlarge:active, .raun-enlarge:active { transform: translateY(1px); }
+.expanded-98 .capsule__enlarge::after, .expanded-98 .raun-enlarge::after { content: "▣"; }
+.capsule .capsule__enlarge::after, .raun-enlarge::after { content: "▢"; }
+</style>
+<!-- RAUN_CAPSULE_EXPAND_98_V2_STYLE_END -->
+
+</head>
+<body>
+  <main>
+    <div class="poster" role="img" aria-label="Héros RAUN en vert et rouge, style affiche vintage marocain."></div>
+    <a href="accueil.html" class="btn" id="go">ACCUEIL</a>
+    <div class="hint">Astuce : appuyez sur <b>Entrée</b> pour continuer</div>
+  </main>
+  <script>
+    document.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ document.getElementById('go').click(); } });
+  </script>
+
+<!-- RAUN_CAPSULE_EXPAND_98_V2_SCRIPT_START -->
+<script>
+(function(){"use strict";
+  const SEL_CAPSULE = '.raun-capsule, .capsule, .capsule-window, .capsule-card, [data-capsule]';
+  const SEL_CONTROLS = [
+    '[data-capsule-expand]','.btn-expand','.btn-maximize','.toggle-expand','.expand',
+    '[aria-label*="agrandir" i]','[title*="agrandir" i]','.capsule__enlarge','.raun-enlarge',
+    '.fa-expand','.icon-expand','[data-action="expand"]'
+  ];
+
+  function qAll(sel, root=document){ try{ return Array.from(root.querySelectorAll(sel)); }catch(e){ return []; } }
+  function isEl(x){ return x && x.nodeType===1; }
+
+  function ensureBackdrop(){ 
+    let bd = document.querySelector('.capsule-expanded-backdrop');
+    if(!bd){ bd = document.createElement('div'); bd.className = 'capsule-expanded-backdrop'; document.body.appendChild(bd); }
+    return bd;
+  }
+
+  function closestCapsule(el){
+    if(!isEl(el)) return null;
+    return el.closest(SEL_CAPSULE);
+  }
+
+  function expandCapsule(cap){
+    if(!cap) return;
+    ensureBackdrop().style.display = 'block';
+    document.body.classList.add('capsule-expanded-lock');
+    cap.classList.add('expanded-98');
+    cap.setAttribute('data-expanded','true');
+  }
+
+  function collapseCapsule(cap){
+    if(!cap) return;
+    cap.classList.remove('expanded-98');
+    cap.removeAttribute('data-expanded');
+    if(!document.querySelector(SEL_CAPSULE+'.expanded-98')){
+      const bd = document.querySelector('.capsule-expanded-backdrop');
+      if(bd) bd.style.display='none';
+      document.body.classList.remove('capsule-expanded-lock');
+    }
+  }
+
+  function collapseAll(){
+    qAll(SEL_CAPSULE+'.expanded-98').forEach(c=>c.classList.remove('expanded-98'));
+    const bd = document.querySelector('.capsule-expanded-backdrop');
+    if(bd) bd.style.display='none';
+    document.body.classList.remove('capsule-expanded-lock');
+  }
+
+  function toggleCapsule(cap){
+    if(!cap) return;
+    if(cap.classList.contains('expanded-98')) collapseCapsule(cap);
+    else expandCapsule(cap);
+  }
+
+  // Public helpers
+  window.RAUN_toggleCapsule98 = function(el){ toggleCapsule(closestCapsule(el) || qAll(SEL_CAPSULE)[0]); };
+  window.RAUN_expandCapsule98 = function(sel){ const cap = typeof sel==='string' ? document.querySelector(sel) : closestCapsule(sel); if(cap) expandCapsule(cap); };
+  window.RAUN_collapseCapsule98 = collapseAll;
+
+  // Inject small square if none exists
+  function injectButtonInto(cap){
+    if(!isEl(cap)) return;
+    const already = cap.querySelector('.capsule__enlarge, .raun-enlarge');
+    if(already) return;
+    const btn = document.createElement('button');
+    btn.type='button'; btn.className='raun-enlarge'; btn.setAttribute('aria-label','Agrandir / Réduire la capsule');
+    btn.addEventListener('click', e=>{ e.stopPropagation(); toggleCapsule(cap); });
+    if(getComputedStyle(cap).position === 'static') cap.style.position = 'relative';
+    cap.appendChild(btn);
+  }
+
+  function attachAll(){
+    qAll(SEL_CAPSULE).forEach(injectButtonInto);
+  }
+
+  // Click delegation for any control inside a capsule
+  document.addEventListener('click', function(e){
+    const t = e.target;
+    const cap = closestCapsule(t);
+    if(!cap) return;
+    const isControl = SEL_CONTROLS.some(sel => t.matches(sel) || (t.closest && t.closest(sel)));
+    if(isControl){ e.preventDefault(); e.stopPropagation(); toggleCapsule(cap); }
+  }, true);
+
+  // ESC closes
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape') collapseAll(); });
+
+  // Hotkey: Shift+E toggles the first visible capsule
+  document.addEventListener('keydown', function(e){
+    if(e.shiftKey && (e.key==='E' || e.key==='e')){ const cap = qAll(SEL_CAPSULE).find(el => el.offsetParent !== null); if(cap) toggleCapsule(cap); }
+  });
+
+  // Observe DOM mutations to handle dynamically injected capsules
+  const mo = new MutationObserver(muts=>{
+    muts.forEach(m=>{
+      m.addedNodes && m.addedNodes.forEach(n=>{
+        if(!isEl(n)) return;
+        if(n.matches && n.matches(SEL_CAPSULE)) injectButtonInto(n);
+        qAll(SEL_CAPSULE, n).forEach(injectButtonInto);
+      })
+    });
+  });
+  mo.observe(document.documentElement, { childList:true, subtree:true });
+
+  // Ensure backdrop exists once
+  ensureBackdrop().style.display = 'none';
+
+  // Initial attach
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', attachAll);
+  else attachAll();
+
+  // Debug: expose a quick check
+  console.debug('RAUN Capsule Expand 98 V2 loaded');
+})();
+</script>
+<!-- RAUN_CAPSULE_EXPAND_98_V2_SCRIPT_END -->
+
+</body>
+</html>

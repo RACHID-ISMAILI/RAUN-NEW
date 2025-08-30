@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="fr">
+\1
+<style id="auth-gate-style">html{visibility:hidden}</style>
+
+<script id="auth-gate-script">
+// RAUN Admin — Hardened Auth Gate (blocks direct access to admin.html)
+(function(){
+  if (window.__RAUN_AUTH_GATED__) return; // avoid double-install
+  window.__RAUN_AUTH_GATED__ = true;
+
+  function loadScript(src){
+    return new Promise(function(resolve, reject){
+      var s = document.createElement('script');
+      s.src = src; s.async = false;
+      s.onload = function(){ resolve(); };
+      s.onerror = function(){ reject(new Error('Failed to load '+src)); };
+      (document.head || document.documentElement).appendChild(s);
+    });
+  }
+
+  function ensureConfig(){
+    if (window.firebaseConfig) return Promise.resolve();
+    // Try to load a common path for config. If it fails, continue; we'll redirect to auth anyway.
+    return loadScript('js/firebase-config.js').catch(function(){ /* ignore */ });
+  }
+
+  function ensureFirebaseCompat(){
+    var p = Promise.resolve();
+    if (!(window.firebase && firebase.app)) {
+      p = p.then(function(){ return loadScript('https://www.gstatic.com/firebasejs/10.12.3/firebase-app-compat.js'); });
+    }
+    return p.then(function(){
+      if (!(window.firebase && firebase.auth)) {
+        return loadScript('https://www.gstatic.com/firebasejs/10.12.3/firebase-auth-compat.js');
+      }
+    });
+  }
+
+  function redirectToAuth(){
+    try {
+      var next = location.pathname + location.search + location.hash;
+      location.replace('auth.html?next=' + encodeURIComponent(next));
+    } catch(e){
+      location.href = 'auth.html';
+    }
+  }
+
+  Promise.resolve()
+    .then(ensureConfig)
+    .then(ensureFirebaseCompat)
+    .then(function(){
+      try{
+        if (!window.firebase) throw new Error('firebase missing');
+        if (!firebase.apps.length) {
+          if (!window.firebaseConfig) throw new Error('firebaseConfig missing');
+          firebase.initializeApp(window.firebaseConfig);
+        }
+        firebase.auth().onAuthStateChanged(function(user){
+          if (!user) {
+            redirectToAuth();
+          } else {
+            // ok → show page
+            var st = document.getElementById('auth-gate-style');
+            if (st) st.parentNode.removeChild(st);
+            document.documentElement.style.visibility = 'visible';
+          }
+        });
+      }catch(e){
+        // If anything fails, redirect to login
+        redirectToAuth();
+      }
+    })
+    .catch(function(){
+      redirectToAuth();
+    });
+})();
+</script>
+
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>RAUN • Administration</title>
+  <meta name="theme-color" content="#031020">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Orbitron:wght@500;700;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="css/subscribe-toggle.css">
+  <link rel="stylesheet" href="css/capsule-expand.css">
+<!-- RAUN-EXPANDER-STYLES (auto) -->
+<style>:root{ --viewer-max-h: 72vh; } /* Ajustable */
+.viewer{
+  position: relative;
+  display: flex;          /* colonne : titre/meta/btn visibles */
+  flex-direction: column;
+  max-height: var(--viewer-max-h);
+  overflow: hidden;       /* le contenu scrolle DEDANS via .capsuleBody */
+}
+
+/* Scroll aligné à la fenêtre (dans le bloc bordé) */
+.capsuleBody{
+  flex: 1 1 auto;
+  min-height: 0;                  /* autorise le shrink dans flex */
+  overflow-y: auto;
+  scrollbar-width: thin;          /* Firefox */
+  scrollbar-gutter: stable;       /* pas de décalage moche */
+}
+.capsuleBody::-webkit-scrollbar{ width: 10px; }
+.capsuleBody::-webkit-scrollbar-track{ background: rgba(255,255,255,.04); border-radius: 10px; }
+.capsuleBody::-webkit-scrollbar-thumb{
+  background: linear-gradient(180deg, rgba(0,198,255,.35), rgba(0,255,204,.35));
+  border-radius: 10px;
+  border: 2px solid rgba(3,13,26,.85);
+}
+.capsuleBody::-webkit-scrollbar-thumb:hover{
+  background: linear-gradient(180deg, rgba(0,198,255,.50), rgba(0,255,204,.50));
+}
+
+
+:root{ --viewer-max-h: 72vh; }
+
+</style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="patch/css/viewer-sticky-fix.css">
+
+  
+  
+  
+  
+  <link rel="stylesheet" href="css/auth-helpers.css">
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-auth-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/firebase-auth.js"></script>
+
+  <link rel="stylesheet" href="css/moderation.css">
+  <script src="js/admin-moderation.js"></script>
+
+  <script>window.RAUN_ALLOW_DELETE = true;</script>
+</head>
+<body>
+  <canvas id="matrix-bg"></canvas>
+  <div id="particles"></div>
+
+  <div id="notification" class="notification">
+    <i class="fas fa-info-circle"></i><span id="notification-text">Bienvenue dans RAUN.</span>
+  </div>
+
+  <header>
+    <div class="brand">
+
+  
+  
+  
+  
+      <i class="fas fa-infinity"></i><span>RAUN</span>
+    </div>
+    <div class="navbtns">
+      <button class="btn btn-purple" onclick="location.href='index.html'">
+        <i class="fa fa-star"></i> Accueil
+      </button>
+      <button class="btn" onclick="location.href='public.html'">
+        <i class="fa fa-home"></i> Public
+      </button>
+      <button class="btn" onclick="location.href='intentions.html'">
+        <i class="fa fa-sparkles"></i> Intentions
+      </button>
+      <button class="btn" onclick="location.href='about.html'">
+        <i class="fa fa-user-astronaut"></i> À propos
+      </button>
+      <button class="btn btn-amber" onclick="location.href='auth.html'">
+        <i class="fa fa-user-shield"></i> Administration
+      </button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="card">
+      <div class="title">Administration</div>
+      <div class="sub">CRUD capsules + photo (utilisée dans "À propos").</div>
+
+      <div class="viewer">
+        <div class="capsuleTitle">Capsule (écriture)</div>
+        <input id="capId" class="smallInput" placeholder="ID (laisser vide pour créer)">
+        <input id="capTitle" class="bigInput" placeholder="Titre de la capsule">
+        <textarea id="capBody" class="bigArea" placeholder="Contenu de la capsule"></textarea>
+        
+<div style="display:flex;gap:8px;align-items:center;margin:8px 0">
+  <button type="button" class="btn btn-green" id="btnAddImage"><i class="fa fa-image"></i> Ajouter une image</button>
+  <span id="imgHint" style="opacity:.8;font-size:.9rem">Colle l’URL dans le texte, ou choisis un fichier pour préparer l’upload (Cloudinary/Firebase plus tard).</span>
+  <input type="file" id="imgFile" accept="image/*" style="display:none">
+</div>
+<div id="imgPreview" style="display:none;margin:8px 0">
+  <img id="imgPreviewEl" src="" alt="" style="max-width:240px;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.25)">
+</div>
+<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+          <button class="btn btn-green" onclick="saveCap()"><i class="fa fa-save"></i> Enregistrer / Publier</button>
+          <button class="btn btn-amber" onclick="saveCapAsDraft()"><i class="fa fa-edit"></i> Sauvegarder brouillon</button>
+          <button class="btn btn-red" onclick="delCap()"><i class="fa fa-trash"></i> Supprimer</button>
+          <button class="btn" onclick="loadCap()"><i class="fa fa-download"></i> Charger par ID</button>
+          <button class="btn" onclick="location.href='approvals.html'"><i class="fa fa-check-circle"></i> Approuver capsules</button>
+          <button class="btn" onclick="location.href='public.html'"><i class="fa fa-arrow-left"></i> Retour Public</button>
+        </div>
+      </div>
+
+      <div class="viewer">
+        <div class="capsuleTitle">Photo pour "À propos"</div>
+        <input id="fileUrl" class="smallInput" placeholder="OU coller une URL d'image (https://...)">
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+          <input id="filePick" type="file" accept="image/*" class="smallInput" style="padding:7px;background:transparent;border:none">
+          <button class="btn btn-amber" onclick="setPhoto()"><i class="fa fa-image"></i> Définir</button>
+          <button class="btn" onclick="location.href='about.html'"><i class="fa fa-eye"></i> Prévisualiser</button>
+        </div>
+      </div>
+
+      <div class="title">Capsules existantes</div>
+      <div class="list" id="alist"></div>
+    </div>
+
+    <div class="footer">
+      RAUN — « Réseau d'Âmes Unifiées Numériquement » — Architecte de l'ombre —
+    </div>
+  </div>
+
+  <script>
+// Choix auto du mode par page + baisse auto après 6s / 1er scroll
+(function () {
+  const page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+  let mode =
+    page === 'index.html'         ? 'showcase' :
+    page === 'public.html'        ? 'normal'   :
+    page === 'intentions.html'    ? 'normal'   :
+    /* about/auth/admin/autres */   'chill';
+
+  // Mobile → chill quoi qu'il arrive
+  if (matchMedia('(max-width: 600px)').matches) mode = 'chill';
+
+  window.__raunMatrixConfig = Object.assign(window.__raunMatrixConfig || {}, { mode });
+
+  // Si on démarre en showcase, on “redescend” automatiquement au premier scroll ou après 6s
+  if (mode === 'showcase') {
+    const downshift = () => window.__raunMatrixSetMode && window.__raunMatrixSetMode('normal');
+    setTimeout(downshift, 6000);
+    window.addEventListener('scroll', downshift, { once: true, passive: true });
+  }
+})();
+</script>
+
+<script src="main.js"></script>
+  <script src="admin.js"></script>
+  <script src="js/subscribe-toggle.js"></script>
+  <script src="js/capsule-expand.js"></script>
+
+<script>
+(function(){
+  var btn = document.getElementById('btnAddImage');
+  var file = document.getElementById('imgFile');
+  var prev = document.getElementById('imgPreview');
+  var prevEl = document.getElementById('imgPreviewEl');
+  var bodyField = document.getElementById('capBody');
+
+  if(btn && file){
+    btn.addEventListener('click', function(){ file.click(); });
+    file.addEventListener('change', function(){ 
+      var f = file.files && file.files[0];
+      if(!f) return;
+      var url = URL.createObjectURL(f);
+      prevEl.src = url;
+      prev.style.display = 'block';
+      if(bodyField){
+        var marker = "\n[Image en préparation : " + (f.name||"image") + "]\n";
+        if(bodyField.value.indexOf(marker) === -1) bodyField.value += marker;
+      }
+    });
+  }
+
+  window.raunUploadImage = async function(provider, file){
+    /* TODO: Cloudinary/Firebase Storage */
+  };
+})();
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="patch/js/viewer-sticky-fix.js"></script>
+</body>
+</html>
